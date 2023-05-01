@@ -1,0 +1,13 @@
+{
+    "name": "Team 3 TCSS 450 Chat App Web Service",
+    "version": "0.1.0",
+    "description": "The Team 3 TCSS 450 Chat App Web Service API Documentation",
+    "title": "Team-3-Chat-App API Doc",
+    "url" : "localhost:5000",
+    "order": [
+        "Hello",
+        "Params",
+        "Wait",
+        "Auth"
+    ]
+}
