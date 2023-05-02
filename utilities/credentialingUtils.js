@@ -8,7 +8,7 @@ module.exports = {
      * @param {string} salt the salt to use when hashing
      */
     generateHash: (pw, salt) => {
-        crypto.createHash("sha256").update(pw + salt).digest("hex")
+        return crypto.createHash("sha256").update(pw + salt).digest("hex");
     }, 
     /**
      * Creates a random string of hexadecimal characters with the length of size.
@@ -16,6 +16,6 @@ module.exports = {
      * @returns random string of hexadecimal characters
      */
     generateSalt: (size) => {
-        crypto.randomBytes(size).toString("hex")
+        return crypto.randomBytes(size).toString("hex");
     },
 }
