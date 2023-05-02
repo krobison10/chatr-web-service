@@ -2,6 +2,5 @@
 const config = require("../config.js");
 const { Pool } = require("pg");
 
-module.exports = {
-    pool: new Pool(config.DB_OPTIONS),
-}
+//Rest of the codebase expects that pool is the direct export, not an object containing it
+module.exports = new Pool(config.DB_OPTIONS);

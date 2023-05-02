@@ -6,12 +6,12 @@ const express = require("express");
 /** 
  * Connection to Heroku Database.
  */
-const pool = require("../utilities/exports.js").pool;
+const pool = require("../utilities").pool;
 
-const validation = require("../utilities/exports.js").validation;
+const validation = require("../utilities").validation;
 const isStringProvided = validation.isStringProvided;
 
-const generateHash = require("../utilities/exports.js").generateHash;
+const generateHash = require("../utilities").generateHash;
 
 const router = express.Router();
 

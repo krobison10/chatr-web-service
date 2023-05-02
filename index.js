@@ -14,13 +14,17 @@ const pool = require("./utilities").pool;
 
 const middleware = require("./middleware");
 
-
 app.use(express.json());
-app.use(middleware.jsonErrorInBody);
-app.use('/auth', require('./routes/register.js'));
-app.use('/auth', require('./routes/login.js'));
-app.use("/doc", express.static('apidoc'))
 
+app.use(middleware.jsonErrorInBody);
+
+app.use('/test', require('./routes/hello.js'));
+
+app.use('/auth', require('./routes/register.js'));
+
+app.use('/auth', require('./routes/login.js'));
+
+app.use("/doc", express.static('apidoc'));
 
 app.listen(config.PORT || 5000, () => {
   console.log("Server up and running on port: " + (config.PORT || 5000));

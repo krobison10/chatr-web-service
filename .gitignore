@@ -1,3 +1,6 @@
 node_modules/
 .vscode/
 .env
+local.env
+apidoc.json
+package-lock.json
