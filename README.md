@@ -8,7 +8,7 @@ To install this project, follow the steps below:
 
 1. Clone the repository from GitHub:
 ```
-git clone https://github.com/jaspersn/Team-3-Web-Service
+git clone https://github.com/TCSS-450-Team-3/Team-3-Web-Service
 ```
 
 2. Navigate to the project directory:
