@@ -2,6 +2,7 @@
  * Framework used to handle requests.
  */
 const express = require("express");
+const { checkPassword } = require("../utilities/registerUtils");
 /**
  * Connection to Heroku Database.
  */
@@ -14,6 +15,7 @@ const generateHash = require("../utilities").generateHash;
 const generateSalt = require("../utilities").generateSalt;
 
 const sendEmail = require("../utilities").sendEmail;
+const registerUtils = require("../utilities").registerUtils;
 
 const router = express.Router();
 
@@ -48,7 +50,8 @@ const router = express.Router();
  */
 router.post(
     "/",
-    (request, response, next) => {
+    // Verify JSON has all fields
+    (request, response, next) => { 
         request.body.username = isStringProvided(request.body.username)
             ? request.body.username
             : request.body.email;
@@ -69,6 +72,17 @@ router.post(
             });
         }
     },
+    // Verify the input data meets the requirements
+    (request, response, next) => { 
+        if(registerUtils.checkPassword(request.body.password)) {
+            next();
+        } else {
+            response.status(401).send({
+                message: "Password does not meet requirements"
+            });
+        } 
+    },
+    // Verify that credentials don't already exist
     (request, response, next) => {
         // We're using placeholders ($1, $2, $3) in the SQL query string to avoid SQL Injection
         // If you want to read more: https://stackoverflow.com/a/8265319
@@ -105,6 +119,7 @@ router.post(
                 }
             });
     },
+    // Insert user into database
     (request, response) => {
         const salt = generateSalt(32);
         const salted_hash = generateHash(request.body.password, salt);
