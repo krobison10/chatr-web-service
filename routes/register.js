@@ -2,7 +2,6 @@
  * Framework used to handle requests.
  */
 const express = require("express");
-const { checkPassword } = require("../utilities/registerUtils");
 /**
  * Connection to Heroku Database.
  */
