@@ -7,4 +7,5 @@ module.exports = {
     generateSalt: credUtils.generateSalt,
     validation: require('./validationUtils.js'),
     sendEmail: require('./email.js').sendEmail,
+    registerUtils: require('./registerUtils')
 }
