@@ -11,14 +11,12 @@ let isStringProvided = validation.isStringProvided
  * @apiDefine JSONError
  * @apiError (400: JSON Error) {String} message "malformed JSON in parameters"
  */ 
-
 /**
- * @api {post} /chats Request to add a chat
+ * @api {post} /chats Request to create a chat
  * @apiName PostChats
  * @apiGroup Chats
  * 
  * @apiHeader {String} authorization Valid JSON Web Token JWT
- * @apiParam {String} name the name for the chat
  * 
  * @apiSuccess (Success 201) {boolean} success true when the name is inserted
  * @apiSuccess (Success 201) {Number} chatID the generated chatId
@@ -28,9 +26,7 @@ let isStringProvided = validation.isStringProvided
  * @apiError (400: Missing Parameters) {String} message "Missing required information"
  * 
  * @apiError (400: SQL Error) {String} message the reported SQL error details
- * 
- * @apiError (400: Unknown Chat ID) {String} message "invalid chat id"
- * 
+ *
  * @apiUse JSONError
  */ 
 router.post("/", (request, response, next) => {
@@ -63,19 +59,58 @@ router.post("/", (request, response, next) => {
 })
 
 /**
- * @apiDefine JSONError
- * @apiError (400: JSON Error) {String} message "malformed JSON in parameters"
- */ 
-/**
- * @api {post} /chats Request to delete a chat (do not use yet)
- * @apiName PostChats
+ * @api {get} /chats Request basic info about all chats for a user.
+ * @apiName GetAllChats
  * @apiGroup Chats
+ * 
+ * @apiDescription Produces a list of chatrooms and basic info about each 
+ * for the user associated with the JWT.
+ * 
+ * @apiHeader {String} authorization Valid JSON Web Token JWT
+ * 
+ * @apiSuccess {Number} rowCount the number of chat rooms returned
+ * @apiSuccess {Object[]} chatRooms list of chat rooms returned 
+ * @apiSuccess {String} chatRooms.id id of the chat room
+ * @apiSuccess {String} chatRooms.name name of the chat room
+ * 
+ * @apiError (400: SQL Error) {String} message the reported SQL error details
+ * 
+ * @apiUse JSONError
+ */ 
+router.get("/", (request, response) => {
+    //Retrieve the members
+    let query = `SELECT Chats.ChatID as "id", Chats.Name AS "name"
+                FROM Chats
+                JOIN ChatMembers
+                ON ChatMembers.ChatID = Chats.ChatID
+                WHERE ChatMembers.MemberID = $1`
+    let values = [request.decoded.memberid]
+    pool.query(query, values)
+        .then(result => {
+            response.send({
+                rowCount : result.rowCount,
+                chatRooms: result.rows
+            })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            })
+        })
+})
+
+/**
+ * @api {delete} /chats Request to delete a chat
+ * @apiName DeleteChat
+ * @apiGroup Chats
+ * 
+ * @apiDescription Deletes the entire chat room, this may be a useless endpoint, do not use yet.
  * 
  * @apiHeader {String} authorization Valid JSON Web Token JWT
  * 
  * @apiParam {Number} name ID of the chat
  * 
- * @apiSuccess (Success 200) {boolean} success true when the chat room is delete
+ * @apiSuccess (Success 200) {boolean} success true when the chat room is deleted
  * 
  * 
  * @apiError (400: Missing Parameters) {String} message "Missing required information"
@@ -282,9 +317,11 @@ console.log(request.decoded)
 )
 
 /**
- * @api {get} /chats/:chatId? Request to get the emails of user in a chat
+ * @api {get} /chats/:chatId? Request to get the emails of users in a chat
  * @apiName GetChats
  * @apiGroup Chats
+ * 
+ * @apiDescription Returns a list of emails of all users in the specified chat room
  * 
  * @apiHeader {String} authorization Valid JSON Web Token JWT
  * 
@@ -475,4 +512,4 @@ router.delete("/:chatId/:email", (request, response, next) => {
     }
 )
 
-module.exports = router
+module.exports = router;
