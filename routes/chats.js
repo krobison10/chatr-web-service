@@ -63,6 +63,104 @@ router.post("/", (request, response, next) => {
 })
 
 /**
+ * @apiDefine JSONError
+ * @apiError (400: JSON Error) {String} message "malformed JSON in parameters"
+ */ 
+/**
+ * @api {post} /chats Request to delete a chat (do not use yet)
+ * @apiName PostChats
+ * @apiGroup Chats
+ * 
+ * @apiHeader {String} authorization Valid JSON Web Token JWT
+ * 
+ * @apiParam {Number} name ID of the chat
+ * 
+ * @apiSuccess (Success 200) {boolean} success true when the chat room is delete
+ * 
+ * 
+ * @apiError (400: Missing Parameters) {String} message "Missing required information"
+ * 
+ * @apiError (400: Malformed Parameter) {String} message "Malformed parameter. chatId must be a number"
+ * 
+ * @apiError (400: Chat Not Empty) {String} message chat room still contains members
+ * 
+ * @apiError (400: SQL Error) {String} message the reported SQL error details
+ * 
+ * @apiError (400: Unknown Chat ID) {String} message "Chat ID not found"
+ * 
+ * @apiUse JSONError
+ */ 
+router.delete("/:chatId?", (request, response, next) => {
+    //validate on empty parameters
+    if (!request.params.chatId) {
+        response.status(400).send({
+            message: "Missing required information"
+        })
+    } else if (isNaN(request.params.chatId)) {
+        response.status(400).send({
+            message: "Malformed parameter. chatId must be a number"
+        })
+    } else {
+        next()
+    }
+}, (request, response, next) => {
+    //validate chat id exists
+    const query = 'SELECT * FROM CHATS WHERE ChatId=$1'
+    const values = [request.params.chatId]
+
+    pool.query(query, values)
+        .then(result => {
+            if (result.rowCount == 0) {
+                response.status(404).send({
+                    message: "Chat ID not found"
+                })
+            } else {
+                next()
+            }
+        }).catch(error => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: error
+            })
+        })
+},(request, response, next) => {
+    //validate chat room is empty
+    const query = 'SELECT * FROM ChatMembers WHERE ChatId=$1'
+    const values = [request.params.chatId]
+
+    pool.query(query, values)
+        .then(result => {
+            if (result.rowCount != 0) {
+                response.status(400).send({
+                    message: "Chat room still contains members"
+                })
+            } else {
+                next()
+            }
+        }).catch(error => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: error
+            })
+        })
+}, (request, response) => {
+    //delete chat room
+    const statement = `DELETE FROM Chats WHERE ChatID=$1`
+    const values = [request.params.chatId]
+    pool.query(statement, values)
+        .then(result => {
+            response.status(200).send({
+                success: true,
+            })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            })
+        })
+})
+
+/**
  * @api {put} /chats/:chatId? Request add a user to a chat
  * @apiName PutChats
  * @apiGroup Chats
