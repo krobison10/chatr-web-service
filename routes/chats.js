@@ -1,11 +1,11 @@
-const express = require('express')
+const express = require('express');
 
-const pool = require('../utilities/exports').pool
+const pool = require('../utilities/exports').pool;
 
-const router = express.Router()
+const router = express.Router();
 
-const validation = require('../utilities').validation
-let isStringProvided = validation.isStringProvided
+const validation = require('../utilities').validation;
+let isStringProvided = validation.isStringProvided;
 
 /**
  * @apiDefine JSONError
@@ -56,7 +56,7 @@ router.post("/", (request, response, next) => {
             })
 
         })
-})
+});
 
 /**
  * @api {get} /chats Request basic info about all chats for a user.
@@ -78,7 +78,7 @@ router.post("/", (request, response, next) => {
  * @apiUse JSONError
  */ 
 router.get("/", (request, response) => {
-    //Retrieve the members
+    //Retrieve the chat rooms
     let query = `SELECT Chats.ChatID as "id", Chats.Name AS "name"
                 FROM Chats
                 JOIN ChatMembers
@@ -97,7 +97,7 @@ router.get("/", (request, response) => {
                 error: err
             })
         })
-})
+});
 
 /**
  * @api {delete} /chats Request to delete a chat
@@ -126,7 +126,7 @@ router.get("/", (request, response) => {
  * @apiUse JSONError
  */ 
 router.delete("/:chatId?", (request, response, next) => {
-    //validate on empty parameters
+    //validate non-missing or invalid (type) parameters
     if (!request.params.chatId) {
         response.status(400).send({
             message: "Missing required information"
@@ -193,7 +193,7 @@ router.delete("/:chatId?", (request, response, next) => {
                 error: err
             })
         })
-})
+});
 
 /**
  * @api {put} /chats/:chatId? Request add a user to a chat
@@ -219,7 +219,7 @@ router.delete("/:chatId?", (request, response, next) => {
  * @apiUse JSONError
  */ 
 router.put("/:chatId/", (request, response, next) => {
-    //validate on empty parameters
+    //validate non-missing or invalid (type) parameters
     if (!request.params.chatId) {
         response.status(400).send({
             message: "Missing required information"
@@ -274,25 +274,25 @@ router.put("/:chatId/", (request, response, next) => {
             })
         })
 }, (request, response, next) => {
-        //validate email does not already exist in the chat
-        let query = 'SELECT * FROM ChatMembers WHERE ChatId=$1 AND MemberId=$2'
-        let values = [request.params.chatId, request.decoded.memberid]
-    
-        pool.query(query, values)
-            .then(result => {
-                if (result.rowCount > 0) {
-                    response.status(400).send({
-                        message: "user already joined"
-                    })
-                } else {
-                    next()
-                }
-            }).catch(error => {
+    //validate email does not already exist in the chat
+    let query = 'SELECT * FROM ChatMembers WHERE ChatId=$1 AND MemberId=$2'
+    let values = [request.params.chatId, request.decoded.memberid]
+
+    pool.query(query, values)
+        .then(result => {
+            if (result.rowCount > 0) {
                 response.status(400).send({
-                    message: "SQL Error",
-                    error: error
+                    message: "user already joined"
                 })
+            } else {
+                next()
+            }
+        }).catch(error => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: error
             })
+        })
 
 }, (request, response) => {
     //Insert the memberId into the chat
@@ -311,8 +311,7 @@ router.put("/:chatId/", (request, response, next) => {
                 error: err
             })
         })
-    }
-)
+});
 
 /**
  * @api {put} /chats/:chatId?/:email? Request add a user to a chat by email
@@ -431,7 +430,7 @@ router.put("/:chatId/:email", (request, response, next) => {
                 error: err
             })
         })
-})
+});
 
 /**
  * @api {get} /chats/:chatId? Request to get the emails of users in a chat
@@ -457,7 +456,7 @@ router.put("/:chatId/:email", (request, response, next) => {
  * @apiUse JSONError
  */ 
 router.get("/:chatId", (request, response, next) => {
-    //validate on missing or invalid (type) parameters
+    //validate non-missing or invalid (type) parameters
     if (!request.params.chatId) {
         response.status(400).send({
             message: "Missing required information"
@@ -489,25 +488,25 @@ router.get("/:chatId", (request, response, next) => {
                 error: error
             })
         })
-    }, (request, response) => {
-        //Retrieve the members
-        let query = `SELECT Members.Email 
-                    FROM ChatMembers
-                    INNER JOIN Members ON ChatMembers.MemberId=Members.MemberId
-                    WHERE ChatId=$1`
-        let values = [request.params.chatId]
-        pool.query(query, values)
-            .then(result => {
-                response.send({
-                    rowCount : result.rowCount,
-                    rows: result.rows
-                })
-            }).catch(err => {
-                response.status(400).send({
-                    message: "SQL Error",
-                    error: err
-                })
+}, (request, response) => {
+    //Retrieve the members
+    let query = `SELECT Members.Email 
+                FROM ChatMembers
+                INNER JOIN Members ON ChatMembers.MemberId=Members.MemberId
+                WHERE ChatId=$1`
+    let values = [request.params.chatId]
+    pool.query(query, values)
+        .then(result => {
+            response.send({
+                rowCount : result.rowCount,
+                rows: result.rows
             })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            })
+        })
 });
 
 /**
@@ -534,7 +533,7 @@ router.get("/:chatId", (request, response, next) => {
  * @apiUse JSONError
  */ 
 router.delete("/:chatId/:email", (request, response, next) => {
-    //validate on empty parameters
+    //validate non-missing or invalid (type) parameters
     if (!request.params.chatId || !request.params.email) {
         response.status(400).send({
             message: "Missing required information"
@@ -588,25 +587,25 @@ router.delete("/:chatId/:email", (request, response, next) => {
             })
         })
 }, (request, response, next) => {
-        //validate email exists in the chat
-        let query = 'SELECT * FROM ChatMembers WHERE ChatId=$1 AND MemberId=$2'
-        let values = [request.params.chatId, request.params.email]
-    
-        pool.query(query, values)
-            .then(result => {
-                if (result.rowCount > 0) {
-                    next()
-                } else {
-                    response.status(400).send({
-                        message: "user not in chat"
-                    })
-                }
-            }).catch(error => {
+    //validate email exists in the chat
+    let query = 'SELECT * FROM ChatMembers WHERE ChatId=$1 AND MemberId=$2'
+    let values = [request.params.chatId, request.params.email]
+
+    pool.query(query, values)
+        .then(result => {
+            if (result.rowCount > 0) {
+                next()
+            } else {
                 response.status(400).send({
-                    message: "SQL Error",
-                    error: error
+                    message: "user not in chat"
                 })
+            }
+        }).catch(error => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: error
             })
+        })
 
 }, (request, response) => {
     //Delete the memberId from the chat
@@ -626,7 +625,6 @@ router.delete("/:chatId/:email", (request, response, next) => {
                 error: err
             })
         })
-    }
-)
+});
 
 module.exports = router;
