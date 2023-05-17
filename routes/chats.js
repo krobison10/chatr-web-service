@@ -433,7 +433,7 @@ router.put("/:chatId/:email", (request, response, next) => {
 });
 
 /**
- * @api {get} /chats/:chatId? Request to get the emails of users in a chat
+ * @api {get} /chats/:chatId? Request to get the info of users in a chat
  * @apiName GetChats
  * @apiGroup Chats
  * 
@@ -445,7 +445,8 @@ router.put("/:chatId/:email", (request, response, next) => {
  * 
  * @apiSuccess {Number} rowCount the number of messages returned
  * @apiSuccess {Object[]} members List of members in the chat
- * @apiSuccess {String} messages.email The email for the member in the chat
+ * @apiSuccess {String} messages.email The email of the member in the chat
+ * @apiSuccess {String} messages.username The username of the member in the chat
  * 
  * @apiError (404: ChatId Not Found) {String} message "Chat ID Not Found"
  * @apiError (400: Invalid Parameter) {String} message "Malformed parameter. chatId must be a number" 
@@ -490,7 +491,7 @@ router.get("/:chatId", (request, response, next) => {
         })
 }, (request, response) => {
     //Retrieve the members
-    let query = `SELECT Members.Email 
+    let query = `SELECT Members.Email, Members.Username
                 FROM ChatMembers
                 INNER JOIN Members ON ChatMembers.MemberId=Members.MemberId
                 WHERE ChatId=$1`
