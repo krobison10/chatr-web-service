@@ -7,8 +7,6 @@ const router = express.Router();
 const { isStringProvided, isLatLong, isZipCode } = require("../utilities/exports").validation;
 const getLatLong = require("../utilities/exports").getLatLong;
 
-let location = '';
-
 /**
  * @api {get} /forecast/:location Request to daily and hourly forecast for a location
  * @apiName GetForecast
@@ -25,17 +23,16 @@ let location = '';
  * @apiError (400: Invalid Parameters) {String} message "Location must be either a valid comma-separated lat,long pair, or a zipcode"
  */
 router.get("/:location?", async (request, response, next) => {
-    location = request.params.location;
-    console.log('initial location', location);
-    if (!isStringProvided(location)) { // No location was sent so use default location (Tacoma, WA)
-        location = { lat: 47.2529, lng: -122.4443 };
+    request.params.location = request.params.location;
+    if (!isStringProvided(request.params.location)) { // No location was sent so use default location (Tacoma, WA)
+        request.params.location = { lat: 47.2529, lng: -122.4443 };
         next();
     } else if (isZipCode(request.params.location)) { // A zipcode was sent, so get the lat/long
-        location = await getLatLong(request.params.location);
+        request.params.location = await getLatLong(request.params.location);
         next();
     } else if (isLatLong(request.params.location)) {
-        const [lat, lng] = location.split(',');
-        location = { lat: lat, lng: lng };
+        const [lat, lng] = request.params.location.split(',');
+        request.params.location = { lat: lat, lng: lng };
         next();
     } else {
         response.status(400).send({
@@ -44,7 +41,7 @@ router.get("/:location?", async (request, response, next) => {
     }
 },
 (request, response) => {
-    const {lat, lng} = location;
+    const {lat, lng} = request.params.location;
     // Split the lat/long pair into two variables
     fetch(`https://api.weather.gov/points/${lat},${lng}`)
         .then((response) => response.json())
