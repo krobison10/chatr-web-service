@@ -26,7 +26,7 @@ app.use('/auth', require('./routes/login.js'));
 
 app.use("/doc", express.static('apidoc'));
 
-app.use('/forecast', require('./routes/forecast.js'));
+app.use('/forecast', middleware.checkToken, require('./routes/forecast.js'));
 
 app.listen(config.PORT || 5000, () => {
   console.log("Server up and running on port: " + (config.PORT || 5000));
