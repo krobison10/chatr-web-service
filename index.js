@@ -24,6 +24,8 @@ app.use('/auth', require('./routes/register.js'));
 
 app.use('/auth', require('./routes/login.js'));
 
+app.use('/chats', middleware.checkToken, require('./routes/chats.js'));
+
 app.use("/doc", express.static('apidoc'));
 
 app.listen(config.PORT || 5000, () => {
