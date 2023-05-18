@@ -47,12 +47,13 @@ router.get("/:location?", async (request, response, next) => {
         .then((response) => response.json())
         .then(async (result) => {
             const {city, state} = result.properties.relativeLocation.properties;
-            let forecast = {};
-            let hourlyForecast = {};
+            let forecast = [];
+            let hourlyForecast = [];
             await fetch(result.properties.forecast)
                 .then((response) => response.json())
                 .then((result) => { // Format the daily forecast data
                     let { day, temperatureLow, temperatureHigh, temperatureUnit, shortForecast } = -1;
+                    let dayCount = 0;
                     Object.keys(result.properties.periods).forEach((num) => {
                         const { name, temperature } = result.properties.periods[num];
                         if (name === 'Tonight' || name === 'Today') return;
@@ -63,16 +64,18 @@ router.get("/:location?", async (request, response, next) => {
                             day = name;
                         } else {
                             temperatureLow = temperature;
-                            forecast[day] = { temperatureHigh, temperatureLow, temperatureUnit, shortForecast };
+                            forecast[dayCount++] = { day, temperatureHigh, temperatureLow, temperatureUnit, shortForecast };
                         }
                     });
                 });
             await fetch(result.properties.forecastHourly)
                 .then((response) => response.json())
                 .then((result) => { // Format the hourly forecast data
+                    let timeCount = 0;
                     Object.keys(result.properties.periods).filter(num => num <= 24 && num >= 1).forEach((num) => {
                         const { startTime, isDaytime, temperature, temperatureUnit, shortForecast } = result.properties.periods[num];
-                        hourlyForecast[new Date(startTime).toLocaleTimeString()] = { isDaytime, temperature, temperatureUnit, shortForecast };
+                        const time = new Date(startTime).toLocaleTimeString();
+                        hourlyForecast[timeCount++] = { time, isDaytime, temperature, temperatureUnit, shortForecast };
                     });
                 });
             return {city, state, forecast, hourlyForecast};
