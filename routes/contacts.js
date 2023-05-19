@@ -266,7 +266,7 @@ router.post("/:userEmail?", (request, response, next) => {
  * 
  * @apiUse JSONError
  */ 
-router.put("/confirm/:connId?", (request, response, next) => {
+router.put("/accept/:connId?", (request, response, next) => {
     //validate non-missing or invalid (type) parameters
     if (!request.params.connId) {
         response.status(400).send({

@@ -38,15 +38,23 @@ let isStringProvided = validation.isStringProvided;
 router.get("/:query?", (request, response, next) => {
     //validate non-missing or invalid (type) parameters
     if (!request.params.query) {
-        response.status(400).send({
-            message: "Missing required information"
-        })
-    } else {
-        next()
-    }
+        request.params.query = "";
+    } 
+    next();
 }, (request, response) => {
     const query =   `
-                        SELECT username, email, firstname, lastname FROM members WHERE username ILIKE $1 AND memberid != $2
+                        SELECT username, email, firstname, lastname 
+                        FROM members 
+                        WHERE username ILIKE $1 
+                        AND memberid != $2
+                        AND memberid NOT IN (   SELECT memberid_b as "userId"
+                                                FROM contacts
+                                                WHERE memberid_a=$2
+                                                UNION ALL
+                                                SELECT memberid_a as "userId"
+                                                FROM contacts
+                                                WHERE memberid_b=$2
+                                            )
                     `
     const values = [`%${request.params.query}%`, request.decoded.memberid]
     pool.query(query, values)
