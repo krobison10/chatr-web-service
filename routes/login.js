@@ -66,7 +66,7 @@ router.get("/", (request, response, next) => {
     // Obtain auth credentials from HTTP Header
     const base64Credentials = request.headers.authorization.split(" ")[1];
 
-    const credentials = Buffer.from(base64Credentials, "base64").toString("ascii");
+    const credentials = Buffer.from(base64Credentials, "base64").toString("utf8");
 
     const [email, password] = credentials.split(":");
 
