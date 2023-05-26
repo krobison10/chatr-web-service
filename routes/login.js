@@ -108,26 +108,6 @@ router.get("/", (request, response, next) => {
             });
         });
 }, 
-(request, response, next) => {
-    // Check if member is verified
-    const query = `SELECT * FROM members WHERE email = $1 AND verified = TRUE`
-
-    pool
-        .query(query, [request.auth.email])
-        .then(result => {
-            if(result.rowCount == 0) {
-                response.status(300).send({
-                    message: "User is not verified"
-                })
-            }
-            else next()
-        })
-        .catch(err => {
-            response.status(400).send({
-                message: err.detail,
-            });
-        })
-}, 
 (request, response) => {
     // Execute Login
     const result = request.userCredentials;
@@ -153,11 +133,32 @@ router.get("/", (request, response, next) => {
                 expiresIn: "14 days", // expires in 14 days
             }
         );
-        response.status(200).send({
-            success: true,
-            message: "Authentication successful!",
-            token: token,
-        });
+
+        // Check if member is verified
+        const query = `SELECT * FROM members WHERE email = $1 AND verified = TRUE`
+
+        pool
+            .query(query, [request.auth.email])
+            .then(result => {
+                if(result.rowCount == 0) {
+                    response.status(300).send({
+                        message: "User is not verified"
+                    })
+                }
+                else {
+                    response.status(200).send({
+                        success: true,
+                        message: "Authentication successful!",
+                        token: token,
+                    });
+                }
+            })
+            .catch(err => {
+                response.status(400).send({
+                    message: err.detail,
+                });
+            })
+        
     } else { // Credential mismatch
         response.status(400).send({
             message: "Credentials did not match",

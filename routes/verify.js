@@ -123,6 +123,7 @@ router.post("/:email?", (request, response, next) => {
                 error
             })
         } else {
+            console.log(`Code for ${request.params.email}: ${request.verificationCode}`);
             response.status(201).json({
                 success: true,
                 code: request.verificationCode
@@ -179,7 +180,7 @@ router.put("/:email?", (request, response, next) => {
                 })
             }
             //Check if codes match
-            else if(request.body.verificationCode !== result.rows[0].code) {
+            else if(request.body.verificationCode != result.rows[0].code) {
                 response.status(400).send({
                     message: "The provided code is incorrect"
                 })
