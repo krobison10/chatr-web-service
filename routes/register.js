@@ -13,7 +13,6 @@ const isStringProvided = validation.isStringProvided;
 const generateHash = require("../utilities").generateHash;
 const generateSalt = require("../utilities").generateSalt;
 
-const sendEmail = require("../utilities").sendEmail;
 const registerUtils = require("../utilities").registerUtils;
 
 const router = express.Router();
@@ -132,12 +131,6 @@ router.post(
                     success: true,
                     email: request.body.email,
                 });
-                sendEmail(
-                    "our.email@lab.com",
-                    request.body.email,
-                    "Welcome to our App!",
-                    "Please verify your Email account."
-                );
             })
             .catch((error) => {
                 // TODO: Remove the user from member table if there was an error inserting password.
