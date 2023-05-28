@@ -10,6 +10,14 @@ module.exports = {
         return param !== undefined && param.length > 0;
     },
     /**
+     * Checks the parameter to see if it is a number.
+     * @param {number} param The parameter to check.
+     * @returns True if the parameter is a number, false otherwise.
+     */
+    isNumberProvided: (param) => {
+        return typeof param === 'number' && isFinite(param);
+    },
+    /**
      * Returns whether the given parameter is in the format of latitude,longitude.
      * @param {String} param The parameter to check.
      * @returns Whether the given parameter is in the format of latitude,longitude.
