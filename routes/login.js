@@ -133,6 +133,7 @@ router.get("/", (request, response, next) => {
                 expiresIn: "14 days", // expires in 14 days
             }
         );
+        console.log('user', request.auth.email, 'logged in with token:', token);
 
         // Check if member is verified
         const query = `SELECT * FROM members WHERE email = $1 AND verified = TRUE`
