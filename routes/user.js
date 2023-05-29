@@ -6,13 +6,10 @@ const isStringProvided = validation.isStringProvided;
 
 // Endpoint to get user information
 router.get('/', (req, res) => {
-  console.log(req.headers);
   const memberId = req.decoded.memberid;
 
 
-  // Query the database to retrieve user information using the memberId
-  console.log('Decoded Member ID:', memberId);
-
+  // Query the database to retrieve user information using the memberID
   const query = {
     text: 'SELECT FirstName, LastName, Username FROM Members WHERE MemberID = $1',
     values: [memberId]
@@ -20,9 +17,8 @@ router.get('/', (req, res) => {
 
   pool.query(query)
     .then(result => {
-      console.log('Query result:', result); 
       if (result.rows.length === 0) {
-        console.log('No rows found in the database');
+
         // User not found
         return res.status(404).json({
           success: false,
@@ -32,7 +28,6 @@ router.get('/', (req, res) => {
 
       // User found, return the information
       const user = result.rows[0];
-      console.log('User object:', user);
       return res.status(200).json({
         success: true,
         firstName: user.firstname,
@@ -43,7 +38,6 @@ router.get('/', (req, res) => {
       
     })
     .catch(error => {
-      console.error('Error retrieving user information:', error);
       return res.status(500).json({
         success: false,
         message: 'Internal server error'
