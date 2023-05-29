@@ -130,10 +130,27 @@ router.post("/", async (request, response, next) => {
 router.delete("/", async (request, response, next) => {
     if (isNumberProvided(request.body.primarykey)) {
         next();
-    } else {
-        response.status(400).send({
-            message: "Missing required information.",
-        });
+    } else { // No primary key -> delete all locations
+        const theQuery = `DELETE FROM Locations
+                      WHERE MemberID = $1`;
+        const values = [
+            request.decoded.memberid,
+        ];
+        pool
+            .query(theQuery, values)
+            .then((result) => {
+                response.status(200).send({
+                    success: true,
+                    message: "All locations deleted successfully.",
+                });
+            })
+            .catch((error) => {
+                console.log(error);
+                response.status(400).send({
+                    message: "Error occurred while deleting all locations.",
+                    detail: error.detail,
+                });
+            });
     }
 },
 (request, response) => {
@@ -146,16 +163,10 @@ router.delete("/", async (request, response, next) => {
     pool
         .query(theQuery, values)
         .then((result) => {
-            if (result.rowCount > 0) {
-                response.status(200).send({
-                    success: true,
-                    message: "Location deleted successfully.",
-                });
-            } else {
-                response.status(404).send({
-                    message: "Location not found.",
-                });
-            }
+            response.status(200).send({
+                success: true,
+                message: "Location deleted successfully.",
+            });
         })
         .catch((error) => {
             console.log(error);
