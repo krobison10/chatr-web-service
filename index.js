@@ -38,6 +38,8 @@ app.use('/location', middleware.checkToken, require('./routes/location.js'));
 
 app.use('/verify', require('./routes/verify.js'));
 
+app.use('/user', middleware.checkToken,require('./routes/user.js'));
+
 app.listen(config.PORT || 5000, () => {
   console.log("Server up and running on port: " + (config.PORT || 5000));
 });
