@@ -58,6 +58,7 @@ router.post("/", (request, response, next) => {
         })
 });
 
+
 /**
  * @api {get} /chats Request basic info about all chats for a user.
  * @apiName GetAllChats
@@ -126,73 +127,98 @@ router.get("/", (request, response) => {
  * @apiUse JSONError
  */ 
 router.delete("/:chatId?", (request, response, next) => {
-    //validate non-missing or invalid (type) parameters
+    console.log("Received chat ID:", request.params.chatId);
+    // validate non-missing or invalid (type) parameters
     if (!request.params.chatId) {
         response.status(400).send({
             message: "Missing required information"
-        })
+        });
     } else if (isNaN(request.params.chatId)) {
         response.status(400).send({
             message: "Malformed parameter. chatId must be a number"
-        })
+        });
     } else {
-        next()
+        next();
     }
 }, (request, response, next) => {
-    //validate chat id exists
-    const query = 'SELECT * FROM CHATS WHERE ChatId=$1'
-    const values = [request.params.chatId]
+    // validate chat id exists
+    const query = 'SELECT * FROM CHATS WHERE ChatId=$1';
+    const values = [request.params.chatId];
 
     pool.query(query, values)
         .then(result => {
             if (result.rowCount == 0) {
                 response.status(404).send({
                     message: "Chat ID not found"
-                })
+                });
             } else {
-                next()
+                console.log("Chat ID exists");
+                next();
             }
         }).catch(error => {
+            console.log("Error validating chat ID:", error);
             response.status(400).send({
                 message: "SQL Error",
                 error: error
-            })
+            });
+        });
+}, (request, response, next) => {
+    // delete chat room entry for the user from ChatMembers table
+    const deleteChatMemberQuery = `DELETE FROM ChatMembers WHERE ChatId=$1 AND MemberId=$2`;
+    const deleteChatMemberValues = [request.params.chatId, request.decoded.memberid];
+    pool.query(deleteChatMemberQuery, deleteChatMemberValues)
+        .then(deleteChatMemberResult => {
+            console.log("Deleted chat member for chat ID:", request.params.chatId);
+            next();
         })
-},(request, response, next) => {
-    //validate chat room is empty
-    const query = 'SELECT * FROM ChatMembers WHERE ChatId=$1'
-    const values = [request.params.chatId]
-
-    pool.query(query, values)
-        .then(result => {
-            if (result.rowCount != 0) {
-                response.status(400).send({
-                    message: "Chat room still contains members"
-                })
-            } else {
-                next()
-            }
-        }).catch(error => {
-            response.status(400).send({
-                message: "SQL Error",
-                error: error
-            })
-        })
-}, (request, response) => {
-    //delete chat room
-    const statement = `DELETE FROM Chats WHERE ChatID=$1`
-    const values = [request.params.chatId]
-    pool.query(statement, values)
-        .then(result => {
-            response.status(200).send({
-                success: true,
-            })
-        }).catch(err => {
+        .catch(err => {
+            console.log("Error deleting chat member:", err);
             response.status(400).send({
                 message: "SQL Error",
                 error: err
-            })
+            });
+        });
+}, (request, response, next) => {
+    // check if there are any remaining members in the chat
+    const checkRemainingMembersQuery = `SELECT COUNT(*) AS memberCount FROM ChatMembers WHERE ChatId=$1`;
+    const checkRemainingMembersValues = [request.params.chatId];
+    pool.query(checkRemainingMembersQuery, checkRemainingMembersValues)
+        .then(checkRemainingMembersResult => {
+            const memberCount = parseInt(checkRemainingMembersResult.rows[0].membercount);
+            if (memberCount > 0) {
+                console.log("Chat has remaining members. Chat ID:", request.params.chatId);
+                response.status(200).send({
+                    success: true
+                });
+            } else {
+                next();
+            }
         })
+        .catch(err => {
+            console.log("Error checking remaining members:", err);
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            });
+        });
+}, (request, response) => {
+    // delete chat room from Chats table if no remaining members
+    const deleteChatQuery = `DELETE FROM Chats WHERE ChatID=$1`;
+    const deleteChatValues = [request.params.chatId];
+    pool.query(deleteChatQuery, deleteChatValues)
+        .then(deleteChatResult => {
+            console.log("Deleted chat ID:", request.params.chatId);
+            response.status(200).send({
+                success: true
+            });
+        })
+        .catch(err => {
+            console.log("Error deleting chat room:", err);
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            });
+        });
 });
 
 /**
