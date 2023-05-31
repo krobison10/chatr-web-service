@@ -4,8 +4,8 @@
   "description": "The Team 3 TCSS 450 Chat App Web Service",
   "main": "index.js",
   "scripts": {
-    "dev": "set NODE_ENV=dev&& node index.js",
-    "local": "set NODE_ENV=local&& node index.js"
+    "dev": "export NODE_ENV=dev|| set NODE_ENV=dev&& node index.js",
+    "local": "export NODE_ENV=local|| set NODE_ENV=local&& node index.js"
   },
   "author": "Team 3",
   "license": "MIT",
