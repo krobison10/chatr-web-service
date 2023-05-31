@@ -54,6 +54,7 @@ router.get("/:location?", async (request, response, next) => {
                 .then((result) => { // Format the daily forecast data
                     let { day, temperatureLow, temperatureHigh, temperatureUnit, shortForecast } = -1;
                     let dayCount = 0;
+                    if (result.properties.periods.length === 0) return;
                     Object.keys(result.properties.periods).forEach((num) => {
                         const { name, temperature } = result.properties.periods[num];
                         if (name === 'Tonight' || name === 'Today') return;
@@ -80,7 +81,6 @@ router.get("/:location?", async (request, response, next) => {
                 });
             return {city, state, forecast, hourlyForecast};
         }).then((info) => {
-            console.log('sending response');
             response.send({
                 city: info.city,
                 state: info.state,
