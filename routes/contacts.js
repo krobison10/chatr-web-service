@@ -324,10 +324,14 @@ router.put("/accept/:connId?", (request, response, next) => {
         })
 }, (request, response, next) => {
     //Confirm the connection
-    const query = `UPDATE contacts SET verified = TRUE WHERE connectionId = $1`
+    const query = `UPDATE contacts SET verified = TRUE WHERE connectionId = $1 RETURNING memberid_a, memberid_b`
     const values = [request.params.connId]
     pool.query(query, values)
-        .then(result => next())
+        .then(result => {
+            request.targetId = request.decoded.memberid === result.rows[0].memberid_a ? 
+                result.rows[0].memberid_b : result.rows[0].memberid_a;
+            next()
+        })
         .catch(err => {
             response.status(400).send({
                 message: "SQL Error",
@@ -410,11 +414,15 @@ router.delete("/:connId?", (request, response, next) => {
             })            
         })
 }, (request, response, next) => {
-    const query = `DELETE FROM contacts WHERE connectionId = $1`;
+    const query = `DELETE FROM contacts WHERE connectionId = $1 RETURNING memberid_a, memberid_b`;
     const values = [request.params.connId];
 
     pool.query(query, values)
-        .then(result => next())
+        .then(result => {
+            request.targetId = request.decoded.memberid === result.rows[0].memberid_a ? 
+                result.rows[0].memberid_b : result.rows[0].memberid_a;
+            next()
+        })
         .catch(err => {
             response.status(400).send({
                 message: "SQL Error",
