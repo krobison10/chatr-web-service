@@ -38,6 +38,9 @@ app.use('/verify', require('./routes/sendEmail.js'));
 
 app.use('/user', middleware.checkToken,require('./routes/user.js'));
 
+app.use('/changePassword', middleware.checkToken,require('./routes/user.js'));
+
+
 app.listen(config.PORT || 5000, () => {
   console.log("Server up and running on port: " + (config.PORT || 5000));
 });
