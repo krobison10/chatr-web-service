@@ -5,6 +5,9 @@ const pool = require('../utilities/exports').pool;
 const router = express.Router();
 
 const validation = require('../utilities').validation;
+
+const pushy = require('../utilities/exports').messaging
+
 let isStringProvided = validation.isStringProvided;
 
 /**
@@ -226,16 +229,14 @@ router.post("/:userEmail?", (request, response, next) => {
                 error: err
             })
         })
-}, (request, response) => {
+}, (request, response, next) => {
     //Create connection
     const query =  `INSERT INTO contacts(memberid_a, memberid_b) VALUES($1, $2) RETURNING connectionid`
     const values = [request.decoded.memberid, request.targetId]
     pool.query(query, values)
         .then(result => {
-            response.status(201).send({
-                success: true,
-                connectionId: result.rows[0].connectionid
-            })
+            request.connectionId = result.rows[0].connectionid;
+            next()
         })
         .catch(err => {
             response.status(400).send({
@@ -243,6 +244,23 @@ router.post("/:userEmail?", (request, response, next) => {
                 error: err
             })
         })   
+}, (request, response) => {
+    //Send a notification to other party
+    let query = `SELECT token FROM Push_Token WHERE memberid = $1`
+    let values = [request.targetId]
+    pool.query(query, values)
+        .then(result => {
+            result.rows.forEach(row => pushy.sendContactUpdate(row.token, "newRequest", request.connectionId))
+            response.status(201).send({
+                success: true,
+                connectionId: request.connectionId
+            })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error on select from push token",
+                error: err
+            })
+        })
 });
 
 /**
@@ -304,19 +322,35 @@ router.put("/accept/:connId?", (request, response, next) => {
                 error: err
             })
         })
-}, (request, response) => {
+}, (request, response, next) => {
     //Confirm the connection
-    const query = `UPDATE contacts SET verified = TRUE WHERE connectionId = $1`
+    const query = `UPDATE contacts SET verified = TRUE WHERE connectionId = $1 RETURNING memberid_a, memberid_b`
     const values = [request.params.connId]
     pool.query(query, values)
         .then(result => {
-            response.status(201).send({
-                success: true
-            })
+            request.targetId = request.decoded.memberid === result.rows[0].memberid_a ? 
+                result.rows[0].memberid_b : result.rows[0].memberid_a;
+            next()
         })
         .catch(err => {
             response.status(400).send({
                 message: "SQL Error",
+                error: err
+            })
+        })
+}, (request, response) => {
+    //Send a notification to other party
+    let query = `SELECT token FROM Push_Token WHERE memberid = $1`
+    let values = [request.targetId]
+    pool.query(query, values)
+        .then(result => {
+            result.rows.forEach(row => pushy.sendContactUpdate(row.token, "confirmRequest", request.connectionId))
+            response.status(201).send({
+                success: true
+            })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error on select from push token",
                 error: err
             })
         })
@@ -379,21 +413,37 @@ router.delete("/:connId?", (request, response, next) => {
                 error: err
             })            
         })
-}, (request, response,) => {
-    const query = `DELETE FROM contacts WHERE connectionId = $1`;
+}, (request, response, next) => {
+    const query = `DELETE FROM contacts WHERE connectionId = $1 RETURNING memberid_a, memberid_b`;
     const values = [request.params.connId];
 
     pool.query(query, values)
         .then(result => {
-            response.status(201).send({
-                success: true
-            })
+            request.targetId = request.decoded.memberid === result.rows[0].memberid_a ? 
+                result.rows[0].memberid_b : result.rows[0].memberid_a;
+            next()
         })
         .catch(err => {
             response.status(400).send({
                 message: "SQL Error",
                 error: err
             })              
+        })
+}, (request, response) => {
+    //Send a notification to other party
+    let query = `SELECT token FROM Push_Token WHERE memberid = $1`
+    let values = [request.targetId]
+    pool.query(query, values)
+        .then(result => {
+            result.rows.forEach(row => pushy.sendContactUpdate(row.token, "deleteContact", request.connectionId))
+            response.status(201).send({
+                success: true
+            })
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error on select from push token",
+                error: err
+            })
         })
 });
 

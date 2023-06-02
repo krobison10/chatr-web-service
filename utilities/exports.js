@@ -9,4 +9,5 @@ module.exports = {
     sendEmail: require('./email.js').sendEmail,
     registerUtils: require('./registerUtils'),
     getLatLong: require('./geocoder.js').getLatLong,
+    messaging: require('./pushy_utilities.js'),
 }
