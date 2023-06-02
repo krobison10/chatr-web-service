@@ -34,6 +34,8 @@ app.use("/doc", express.static('apidoc'));
 
 app.use('/forecast', middleware.checkToken, require('./routes/forecast.js'));
 
+app.use('/location', middleware.checkToken, require('./routes/location.js'));
+
 app.use('/verify', require('./routes/verify.js'));
 
 app.use('/user', middleware.checkToken,require('./routes/user.js'));
