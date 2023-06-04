@@ -43,6 +43,7 @@ router.get("/:location?", async (request, response, next) => {
 (request, response) => {
     const {lat, lng} = request.params.location;
     // Split the lat/long pair into two variables
+    console.log(`getting forecast from https://api.weather.gov/points/${lat},${lng}`);
     fetch(`https://api.weather.gov/points/${lat},${lng}`)
         .then((response) => response.json())
         .then(async (result) => {
@@ -54,8 +55,11 @@ router.get("/:location?", async (request, response, next) => {
                 .then((result) => { // Format the daily forecast data
                     let { day, temperatureLow, temperatureHigh, temperatureUnit, shortForecast } = -1;
                     let dayCount = 0;
-                    if (result.properties.periods.length === 0) return;
-                    Object.keys(result.properties.periods).forEach((num) => {
+                    if (result.status === 500) {
+                        console.log(`recieved a 500 error when getting forecast for ${lat},${lng}}`);
+                        return; // API unexpectedly returns 500 error for some locations. See: https://api.weather.gov/gridpoints/OUN/48,48/forecast/hourly
+                    }
+                    Object.keys(result?.properties?.periods).forEach((num) => {
                         const { name, temperature } = result.properties.periods[num];
                         if (name === 'Tonight' || name === 'Today') return;
                         if (!name.includes('Night')) {
@@ -73,7 +77,11 @@ router.get("/:location?", async (request, response, next) => {
                 .then((response) => response.json())
                 .then((result) => { // Format the hourly forecast data
                     let timeCount = 0;
-                    Object.keys(result.properties.periods).filter(num => num <= 24 && num >= 1).forEach((num) => {
+                    if (result.status === 500) {
+                        console.log(`recieved a 500 error when getting forecast for ${lat},${lng}}`);
+                        return; // API unexpectedly returns 500 error for some locations. See: https://api.weather.gov/gridpoints/OUN/48,48/forecast/hourly
+                    }
+                    Object.keys(result?.properties?.periods).filter(num => num <= 24 && num >= 1).forEach((num) => {
                         const { startTime, isDaytime, temperature, temperatureUnit, shortForecast } = result.properties.periods[num];
                         const time = new Date(startTime).toLocaleTimeString();
                         hourlyForecast[timeCount++] = { time, isDaytime, temperature, temperatureUnit, shortForecast };
