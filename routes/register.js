@@ -7,11 +7,12 @@ const express = require("express");
  */
 const pool = require("../utilities").pool;
 
+const nodemailer = require('nodemailer');
+
 const validation = require("../utilities").validation;
 const isStringProvided = validation.isStringProvided;
 
-const generateHash = require("../utilities").generateHash;
-const generateSalt = require("../utilities").generateSalt;
+const { generatePassword, generateHash, generateSalt } = require("../utilities");
 
 const registerUtils = require("../utilities").registerUtils;
 
@@ -141,6 +142,109 @@ router.post(
             });
     }
 );
+/**
+ * @api {put} /auth/reset Request to reset a user's password
+ * @apiName PutAuthReset
+ * @apiGroup Auth
+ *
+ * @apiBody {String} email a users email
+ *
+ * @apiParamExample {json} Request-Body-Example:
+ *   {
+ *    "email":"exampleuseremail@gmail.com"
+ *  }
+ *
+ * @apiSuccess (Success 201) {boolean} success true when the password is updated
+ * @apiSuccess (Success 201) {String} email the email of the user updated
+ *
+ * @apiError (400: Missing Parameters) {String} message "Missing required information"
+ *
+ * @apiError (404: Email Not Found) {String} message "Email not found"
+ *
+ * @apiError (400: Other Errors) {String} message "other error, see detail"
+ *
+ * @apiError (400: Other Errors) {String} detail Information about the error
+*/
+router.put('/reset', (request, response, next) => {
+    if (isStringProvided(request.body.email)) {
+        next();
+    } else {
+        response.status(400).send({
+            message: "Missing required information",
+        });
+    }
+}, (request, response, next) => {
+
+    let theQuery = "SELECT * FROM Members WHERE Email=$1";
+    let values = [request.body.email];
+    pool.query(theQuery, values)
+        .then((result) => {
+            if (result.rowCount == 0) {
+                response.status(404).send({
+                    message: "Email not found",
+                });
+            } else {
+                request.memberid = result.rows[0].memberid;
+                next();
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            response.status(400).send({
+                message: "other error, see detail",
+                detail: error.detail,
+            });
+        });
+}, (request, response, next) => {
+    // Generate a new temporary password
+    request.body.password = generatePassword();
+    let theQuery = "UPDATE Credentials SET SaltedHash=$1, Salt=$2 WHERE MemberId=$3";
+    const salt = generateSalt(32);
+    const salted_hash = generateHash(request.body.password, salt);
+    let values = [salted_hash, salt, request.memberid];
+    pool.query(theQuery, values)
+        .then((result) => {
+            next();
+        })
+        .catch((error) => {
+            console.log(error);
+            response.status(400).send({
+                message: "other error, see detail",
+                detail: error.detail,
+            });
+        });
+}, (request, response) => {
+    // Send the email
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'chatrapptcss450@gmail.com',
+            pass: 'ebxcsdsykiufsgjb'
+        }
+    });
+
+    const mailOptions = {
+        to: request.body.email,
+        subject: 'Chatr Password Reset Instructions',
+        text: 'Please login to your account using your temporary password, then change your password within the app. Your temporary password is: ' + request.body.password
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            esponse.status(400).send({
+                message: "error occurred sending email, see detail",
+                detail: error.detail,
+            });
+        } else {
+            console.log(`Temporary password for ${request.body.email}: ${request.body.password}`);
+            response.status(201).send({
+                success: true,
+                code: request.body.password
+            });
+        }
+    });
+});
+
 
 router.get("/hash_demo", (request, response) => {
     const password = "hello12345";

@@ -18,4 +18,22 @@ module.exports = {
     generateSalt: (size) => {
         return crypto.randomBytes(size).toString("hex");
     },
+    /**
+     * Creates a random password that meets the requirements of the database.
+     * @returns a randomly generated password that meets the requirements of the database.
+     */
+    generatePassword: () => {
+        const chars = [
+            "abcdefghijklmnopqrstuvwxyz",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "0123456789",
+            "()|¬¦!£$%^&*<>;#~_\-+=@",
+        ];
+        let password = chars.map(set => set[Math.floor(Math.random() * set.length)]).join('');
+        while (password.length < 16) {
+            const set = chars[Math.floor(Math.random() * chars.length)];
+            password += set[Math.floor(Math.random() * set.length)];
+        }
+        return password.split('').sort(() => Math.random() - 0.5).join('');
+    }
 }
