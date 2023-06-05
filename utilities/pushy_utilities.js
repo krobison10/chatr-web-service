@@ -21,9 +21,25 @@ function sendMessageToIndividual(token, message) {
         if (err) {
             return console.log('Fatal Error', err);
         }
+    })
+}
 
-        // Log success 
-        console.log('Push sent successfully! (ID: ' + id + ')')
+function sendChatAction(token, action, chatid, name) {
+
+    //build the message for Pushy to send
+    var data = {
+        "type": "chat",
+        action,
+        chatid,
+        name
+    }
+
+    console.log("Push sent successfully")
+    pushyAPI.sendPushNotification(data, token, {}, function (err, id) {
+        // Log errors to console 
+        if (err) {
+            return console.log('Fatal Error', err);
+        }
     })
 }
 
@@ -33,7 +49,7 @@ function sendContactUpdate(token, action, connId) {
         action,
         connId
     }
- 
+    
     pushyAPI.sendPushNotification(data, token, {}, function (err, id) {
         // Log errors to console 
         if (err) {
@@ -48,5 +64,5 @@ function sendContactUpdate(token, action, connId) {
 //add other "sendTypeToIndividual" functions here. Don't forget to export them
 
 module.exports = {
-    sendMessageToIndividual, sendContactUpdate
+    sendMessageToIndividual, sendContactUpdate, sendChatAction
 }

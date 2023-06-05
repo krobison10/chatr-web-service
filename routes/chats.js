@@ -4,6 +4,8 @@ const pool = require('../utilities/exports').pool;
 
 const router = express.Router();
 
+const pushy = require('../utilities/exports').messaging
+
 const validation = require('../utilities').validation;
 let isStringProvided = validation.isStringProvided;
 
@@ -388,6 +390,7 @@ router.put("/:chatId/:email", (request, response, next) => {
                     message: "Chat ID not found"
                 })
             } else {
+                request.name = result.rows[0].name;
                 next()
             }
         }).catch(error => {
@@ -439,20 +442,42 @@ router.put("/:chatId/:email", (request, response, next) => {
             })
         })
 
-}, (request, response) => {
+}, (request, response, next) => {
     //Insert the memberId into the chat
     let insert = `INSERT INTO ChatMembers(ChatId, MemberId)
-                  VALUES ($1, $2)
-                  RETURNING *`
+                  VALUES ($1, $2)`
     let values = [request.params.chatId, request.memberid]
     pool.query(insert, values)
         .then(result => {
+            next()
+        }).catch(err => {
+            response.status(400).send({
+                message: "SQL Error",
+                error: err
+            })
+        })
+}, (request, response) => {
+    // send a notification of this action to the added member
+    let query = `SELECT token FROM Push_Token WHERE Push_token.memberid=$1`
+    let values = [request.memberid]
+    pool.query(query, values)
+        .then(result => {
+            result.rows.forEach(entry => {
+                console.log(entry.token);
+                pushy.sendChatAction(
+                    entry.token, 
+                    "newRoom",
+                    request.params.chatId,
+                    request.name,
+                    )
+            })
             response.send({
                 success: true
             })
         }).catch(err => {
+
             response.status(400).send({
-                message: "SQL Error",
+                message: "SQL Error on select from push token",
                 error: err
             })
         })
