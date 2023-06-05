@@ -44,7 +44,7 @@ app.use('/verify', require('./routes/verify.js'));
 
 app.use('/user', middleware.checkToken,require('./routes/user.js'));
 
-app.use('/changePassword', middleware.checkToken,require('./routes/user.js'));
+app.use('/changePassword', middleware.checkToken,require('./routes/changePassword.js'));
 
 
 app.listen(config.PORT || 5000, () => {
