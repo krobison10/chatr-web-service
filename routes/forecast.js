@@ -47,6 +47,10 @@ router.get("/:location?", async (request, response, next) => {
     fetch(`https://api.weather.gov/points/${lat},${lng}`)
         .then((response) => response.json())
         .then(async (result) => {
+            if (result.status === 404) {
+                console.log(`weather API recieved a 404 error when getting forecast for ${lat},${lng}. This is likely due to the location being outside the US.`);
+                return;
+            }
             const {city, state} = result.properties.relativeLocation.properties;
             let forecast = [];
             let hourlyForecast = [];
@@ -89,12 +93,14 @@ router.get("/:location?", async (request, response, next) => {
                 });
             return {city, state, forecast, hourlyForecast};
         }).then((info) => {
-            response.send({
-                city: info.city,
-                state: info.state,
-                forecast: info.forecast,
-                hourlyForecast: info.hourlyForecast,
-            })
+            if (info !== undefined) {
+                response.send({
+                    city: info.city,
+                    state: info.state,
+                    forecast: info.forecast,
+                    hourlyForecast: info.hourlyForecast,
+                })
+            }
         });
 });
 
