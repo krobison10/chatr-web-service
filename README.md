@@ -1,8 +1,36 @@
-# Team-3-Web-Service
+# Chatr Web Service
+Express.js web service for the Chatr app
 
-This web service is responsible for user authentication for the [chat app](https://github.com/krobison10/Team-3-TCSS-450) developed by Team 3 for TCSS 450 at the University of Washington Tacoma.
+<br>
 
-## Installation
+## 📃 Table of Contents:
+
+- [About The App](#-about-the-app)
+- [Screenshots](#-screenshots)
+- [Technologies](#-technologies)
+- [Setup](#%EF%B8%8F-setup)
+- [Approach](#-approach)
+- [Status](#-status)
+- [Credits](#credits)
+
+<br>
+
+## 📕 About The App
+
+<br>
+
+## 📸 Screenshots
+
+
+<br>
+
+## 💻 Technologies
+
+
+<br>
+
+## 🛠️ Setup
+### Installation
 
 To install this project, follow the steps below:
 
@@ -21,24 +49,35 @@ cd Team-3-Web-Service
 npm install
 ```
 
-## API Documentation
+### API Documentation
 
 To generate the API documentation, run the following command in the terminal:
 ```
 apidoc -i routes/ -o apidoc/ -d
 ```
 
-The documentation will be generated in the `apidoc/` directory.
+<br>
 
-## License
+## 🤓 Approach
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+### Project Structure
 
-## Contributors
+### Tech Decisions
 
-This project was developed by Team 3 for TCSS 450 at the University of Washington Tacoma. The team members are:
+<br>
 
+## 📈 Status
+The Android client for Chatr is currently complete and no further work is expected to occur.
+
+Current backlog:
+
+<br>
+
+## Credits
+List of contriubutors:
+
+- [Kyler Robison](https://github.com/krobison10)
 - [Jasper Newkirk](https://github.com/jaspersn)
 - [Leyla Ahmed](https://github.com/leylaAhmed)
 - [Betelhem Bada](https://github.com/Bettyabera)
-- [Kyler Robison](https://github.com/krobison10)
+
