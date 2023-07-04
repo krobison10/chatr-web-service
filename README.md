@@ -36,12 +36,12 @@ To install this project, follow the steps below:
 
 1. Clone the repository from GitHub:
 ```
-git clone https://github.com/TCSS-450-Team-3/Team-3-Web-Service
+git clone https://github.com/krobison10/chatr-web-service
 ```
 
 2. Navigate to the project directory:
 ```
-cd Team-3-Web-Service
+cd chatr-web-service
 ```
 
 3. Install the dependencies using npm:
